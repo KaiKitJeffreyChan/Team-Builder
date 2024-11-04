@@ -47,7 +47,6 @@ export class ChatGPTInstance {
       if (gptResponse === null) {
         throw new Error("Received null response from GPT");
       }
-      console.log("GPT Response:", gptResponse);
       this.conversationHistory.push({
         role: "user",
         name: this.personality.name,
