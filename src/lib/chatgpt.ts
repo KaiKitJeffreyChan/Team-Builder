@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import { Personality, Message } from "../types/chatgptTypes";
 
+// TODO
+// - Add state for which someone can be in, they can be in a conversation or not
+//    - Can leave and re-enter the conversation
+// - Add a way to end the conversation
+
 export class ChatGPTInstance {
   private personality: Personality;
   private conversationHistory: Message[];
@@ -20,7 +25,7 @@ export class ChatGPTInstance {
     - You have nothing new to say.
     - The conversation has been going on for a while; you get`;
 
-  LISTEN_USER_PROMPT = `What would you like to do next`;
+  LISTEN_USER_PROMPT = `What would you like to do next? Respond with one of the options ["SPEAK", "LISTEN"]`;
 
   constructor(personality: Personality) {
     this.client = new OpenAI({
@@ -29,17 +34,21 @@ export class ChatGPTInstance {
     this.personality = personality;
     this.conversationHistory = [
       {
-        role: "assistant",
+        role: "system",
         content: `
-      - You are ${this.personality.name}. You are ${this.personality.description}.
-      - You are going to work with other people and work towards a common goal which will be known later.
-      - This is also a simulation, you are pretending to be a ${this.personality.name}. 
-      - Do not break character.
-    `,
+        - You are ${this.personality.name}. You are ${this.personality.description}.
+        - You are meeting with the group for the first time.
+        - Do not respond with more than one paragraph at a time.
+        - Speak naturally as a human and do not sound robotic.
+        - If the conversation is becoming repetitive, change the topic or end the conversation.
+        - Do not respond in the form of a script.
+        - Do not repeat the same information multiple times or revisit the same topic unless necessary.
+        - If the topic of the conversation is persiting too long, introduce a new topic or try to end the conversation
+        - Do not break character.
+      `,
       },
     ];
   }
-
   listen = async ({
     message,
     speaker,
@@ -68,6 +77,7 @@ export class ChatGPTInstance {
         },
       });
       const gptResponse = response.choices[0].message.content;
+
       console.log("GPT Response:", gptResponse);
 
       switch (gptResponse) {
@@ -90,7 +100,7 @@ export class ChatGPTInstance {
     }
   };
 
-  speak = async (): Promise<void> => {
+  speak = async (): Promise<string> => {
     try {
       const response = await this.client.chat.completions.create({
         model: "gpt-4o-mini",
@@ -108,9 +118,17 @@ export class ChatGPTInstance {
         role: "assistant",
         content: gptResponse,
       });
+      console.log("-------------------------");
+      console.log(this.personality.name, gptResponse);
+      console.log("-------------------------");
+      return gptResponse;
     } catch (error) {
       console.error("Error during OpenAI API request:", error);
       throw error;
     }
+  };
+
+  getPersonality = (): Personality => {
+    return this.personality;
   };
 }

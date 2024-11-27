@@ -1,5 +1,5 @@
 export interface Personality {
-  name?: string;
+  name: string;
   description: string;
 }
 

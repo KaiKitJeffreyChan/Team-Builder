@@ -1,4 +1,5 @@
 import { DialogueStrategy } from "./DialogueStrategy";
+import { ChatGPTInstance } from "../../lib/chatgpt";
 
 class RandomStrategy extends DialogueStrategy {
   private castMembers: Set<any>;
@@ -8,21 +9,21 @@ class RandomStrategy extends DialogueStrategy {
     this.castMembers = new Set();
   }
 
-  registerIntent(castMember: any): void {
+  registerIntent(castMember: ChatGPTInstance): void {
     this.castMembers.add(castMember);
   }
 
-  withdrawIntent(castMember: any): void {
+  withdrawIntent(castMember: ChatGPTInstance): void {
     this.castMembers.delete(castMember);
   }
 
-  next(): any {
-    const castMembersArray = Array.from(this.castMembers);
-    const randomMember =
-      castMembersArray[Math.floor(Math.random() * castMembersArray.length)];
-    if (!randomMember) return null;
-    this.castMembers.delete(randomMember);
-    return randomMember;
+  next(): ChatGPTInstance | null {
+    const membersArray = Array.from(this.castMembers);
+    if (membersArray.length === 0) {
+      return null;
+    }
+    const randomIndex = Math.floor(Math.random() * membersArray.length);
+    return membersArray[randomIndex];
   }
 }
 
