@@ -1,7 +1,6 @@
 export interface Personality {
-  name?: string;
+  name: string;
   description: string;
-  intent: "speak" | "listen" | "advice";
 }
 
 export interface Message {
