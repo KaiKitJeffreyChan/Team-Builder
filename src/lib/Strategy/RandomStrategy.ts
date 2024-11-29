@@ -1,5 +1,5 @@
 import { DialogueStrategy } from "./DialogueStrategy";
-import { ChatGPTInstance } from "../../lib/chatgpt";
+import { OpenAIChatInstance } from "../Models/OpenAIChatInstance";
 
 class RandomStrategy extends DialogueStrategy {
   private castMembers: Set<any>;
@@ -9,15 +9,15 @@ class RandomStrategy extends DialogueStrategy {
     this.castMembers = new Set();
   }
 
-  registerIntent(castMember: ChatGPTInstance): void {
+  registerIntent(castMember: OpenAIChatInstance): void {
     this.castMembers.add(castMember);
   }
 
-  withdrawIntent(castMember: ChatGPTInstance): void {
+  withdrawIntent(castMember: OpenAIChatInstance): void {
     this.castMembers.delete(castMember);
   }
 
-  next(): ChatGPTInstance | null {
+  next(): OpenAIChatInstance | null {
     const membersArray = Array.from(this.castMembers);
     if (membersArray.length === 0) {
       return null;
