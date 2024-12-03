@@ -4,8 +4,10 @@ import { Personality, Message } from "../../types/chatgptTypes";
 
 export class OpenAIChatInstance extends ChatModelInstance {
   private client: OpenAI;
-  private responseQueue: string[] = [];
+  private responseQueue: { speaker: string; message: string }[] = [];
   private isProcessingQueue: boolean = false;
+  public SPEAK_ACTION = "speak";
+  public LISTEN_ACTION = "listen";
 
   constructor(personality: Personality) {
     super(personality);
@@ -27,27 +29,23 @@ export class OpenAIChatInstance extends ChatModelInstance {
         model: "gpt-4o-mini",
         messages: [
           ...this.conversationHistory,
+          { role: "system", content: this.returnCountMessages() },
           { role: "system", name: speaker, content: this.LISTEN_SYSTEM_PROMPT },
           { role: "user", content: this.LISTEN_USER_PROMPT },
         ],
         temperature: 1,
       });
 
-      const gptResponse = response.choices[0].message.content;
-
-      switch (gptResponse) {
-        case null:
-          throw new Error("Received null response from GPT");
+      const intent = response.choices[0].message.content;
+      console.log(speaker, intent);
+      switch (intent) {
         case "SPEAK":
-          await this.speak();
-          break;
+          return this.SPEAK_ACTION;
         case "LISTEN":
-          await this.listen(speaker, message);
-          break;
+          return this.LISTEN_ACTION;
         default:
-          console.log("Unexpected response:", gptResponse);
+          return `Invalid intent ${intent}`;
       }
-      return gptResponse;
     } catch (error) {
       console.error("Error during OpenAI API request:", error);
       throw error;
@@ -70,7 +68,10 @@ export class OpenAIChatInstance extends ChatModelInstance {
         content: gptResponse,
       });
 
-      this.responseQueue.push(gptResponse);
+      this.responseQueue.push({
+        speaker: this.personality.name,
+        message: gptResponse,
+      });
       this.processQueue();
 
       return gptResponse;
@@ -85,10 +86,10 @@ export class OpenAIChatInstance extends ChatModelInstance {
     this.isProcessingQueue = true;
 
     while (this.responseQueue.length > 0) {
-      const response = this.responseQueue.shift();
+      const { speaker, message } = this.responseQueue.shift()!;
       // Can send messages to frontend via web socket here
       console.log("-------------------------");
-      console.log(this.personality.name, response);
+      console.log(speaker, message);
       console.log("-------------------------");
     }
 

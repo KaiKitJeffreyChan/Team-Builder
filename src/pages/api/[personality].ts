@@ -16,16 +16,24 @@ export default async function handler(
     Test.registerIntent(chatGPT);
     let speaker: OpenAIChatInstance | null = null;
 
-    while ((speaker = Test.next()) !== null) {
+    while ((speaker = Test.next())) {
       const new_message: string = await (speaker.speak() as unknown as string);
-
       for (const castMember of castMembers) {
+        console.log(
+          `Checking cast member: ${castMember.getPersonality().name}`
+        );
+        console.log(
+          "bob",
+          castMember.getPersonality().name,
+          speaker.getPersonality().name
+        );
         if (castMember !== speaker) {
           const nextAction = await castMember.listen(
             speaker.getPersonality().name,
             new_message
           );
-          if (nextAction === "SPEAK") {
+
+          if (nextAction === "speak") {
             Test.registerIntent(castMember);
           } else {
             Test.withdrawIntent(castMember);
