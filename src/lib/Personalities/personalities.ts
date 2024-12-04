@@ -1,4 +1,4 @@
-import { Personality } from "../../types/chatgptTypes";
+import { Personality } from "../../types/ModelTypes";
 
 const personalities: Personality[] = [
   {
