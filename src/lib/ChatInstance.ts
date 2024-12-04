@@ -70,7 +70,6 @@ export class ChatInstance {
         temperature: 1,
       });
 
-      console.log(intent);
       switch (intent.trim().toLowerCase()) {
         case "speak":
           return this.SPEAK_ACTION;
@@ -112,10 +111,6 @@ export class ChatInstance {
     }
   }
 
-  getPersonality(): Personality {
-    return this.personality;
-  }
-
   private addToConversationHistory(message: Message) {
     this.conversationHistory.push(message);
   }
@@ -137,5 +132,9 @@ export class ChatInstance {
     }
 
     this.isProcessingQueue = false;
+  }
+
+  getPersonality(): Personality {
+    return this.personality;
   }
 }

@@ -6,7 +6,11 @@ class OpenAIChat extends Model {
   private client: OpenAI;
   constructor() {
     super();
-    this.client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is not set.");
+    }
+    this.client = new OpenAI({ apiKey: apiKey });
   }
 
   async create({

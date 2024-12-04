@@ -4,7 +4,6 @@ import GeminiAIChat from "../../lib/Models/GeminiAIChat";
 import { ChatInstance } from "@/lib/ChatInstance";
 import { RandomStrategy } from "../../lib/Strategy/RandomStrategy";
 import personalities from "../../lib/Personalities/personalities";
-import next from "next";
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,7 +44,6 @@ export default async function handler(
         }
       }
     }
-    console.log("done");
     res.status(200).json({ response: "hello" });
   } else {
     res.status(405).json({ error: "Method not allowed" });
