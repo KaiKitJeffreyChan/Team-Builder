@@ -15,4 +15,5 @@ export interface ChatInstanceParams {
   personality: Personality;
   messageCount?: number;
   model: Model;
+  problem: string;
 }
