@@ -1,4 +1,4 @@
-import { Personality } from "../../types/chatgptTypes";
+import { Personality } from "../../types/ModelTypes";
 
 const personalities: Personality[] = [
   {
@@ -9,7 +9,7 @@ const personalities: Personality[] = [
   {
     name: "alex",
     description:
-      "You are a person who has recently recovered from a serious illness. You have a deep understanding of the challenges and emotions that come with being sick, and you are eager to share your experience and offer support to others going through similar situations.",
+      "You have all the symptoms of covid-19 and are going to the doctor asking for a diagnosis, you do not know you have covid.",
   },
 ];
 
