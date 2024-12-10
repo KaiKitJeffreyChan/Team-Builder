@@ -7,6 +7,22 @@ import { personalities, problem } from "../../lib/Personalities/personalities";
 import { Solution } from "@/lib/Solution/Solution";
 import { Intent } from "@/lib/Strategy/DialogueStrategy";
 
+const LogDetails = (
+  speaker: Intent,
+  new_message: string,
+  solution: Solution
+) => {
+  console.log("__________________________");
+  console.log(
+    `NEW MESSAGE BY ${speaker.castMember.getPersonality().name} with intent: ${
+      speaker.intent
+    }`,
+    new_message
+  );
+  console.log("SOLUTION:", solution.getSolution());
+  console.log("__________________________");
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -32,10 +48,8 @@ export default async function handler(
     });
 
     const castMembers = [person1, person2, person3];
-
     const Test = new RandomStrategy();
     const solution = new Solution();
-
     Test.registerIntent(person1, "speak");
 
     let speaker: Intent | null = null;
@@ -48,15 +62,8 @@ export default async function handler(
         new_message = await (speaker.castMember.speak() as unknown as string);
         speaker.castMember.editSolution(solution);
       }
-      console.log("__________________________");
-      console.log(
-        `NEW MESSAGE BY ${
-          speaker.castMember.getPersonality().name
-        } with intent: ${speaker.intent}`,
-        new_message
-      );
-      console.log("SOLUTION:", solution.getSolution());
-      console.log("__________________________");
+
+      LogDetails(speaker, new_message, solution);
 
       for (const castMember of castMembers) {
         await new Promise((resolve) => setTimeout(resolve, 10000));
