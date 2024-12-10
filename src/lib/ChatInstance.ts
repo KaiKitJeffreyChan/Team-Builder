@@ -10,9 +10,6 @@ export class ChatInstance {
   private problem: string;
 
   private messageCount: number;
-  private responseQueue: { speaker: string; message: string }[] = [];
-  private isProcessingQueue: boolean = false;
-
   public SPEAK_ACTION = "speak";
   public LISTEN_ACTION = "listen";
   public SPEAKWITHEDIT_ACTION = "speakwithedit";
@@ -175,6 +172,7 @@ export class ChatInstance {
     this.conversationHistory.push(message);
   }
 
+  // Can implement in future to control conversation length
   private returnCountMessages(): string {
     return `There has been a total of ${this.messageCount} messages so far.`;
   }
