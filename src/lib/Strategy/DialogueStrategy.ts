@@ -1,9 +1,16 @@
+import { ChatInstance } from "../ChatInstance";
+
+export interface Intent {
+  castMember: ChatInstance;
+  intent: string;
+}
+
 export class DialogueStrategy {
-  registerIntent(castMember: any): void {
+  registerIntent(castMember: ChatInstance, intent: string): void {
     throw new Error("Not implemented");
   }
 
-  withdrawIntent(castMember: any): void {
+  withdrawIntent(castMember: ChatInstance): void {
     throw new Error("Not implemented");
   }
 

@@ -5,7 +5,7 @@ import { ChatInstance } from "@/lib/ChatInstance";
 import { RandomStrategy } from "../../lib/Strategy/RandomStrategy";
 import { personalities, problem } from "../../lib/Personalities/personalities";
 import { Solution } from "@/lib/Solution/Solution";
-import next from "next";
+import { Intent } from "@/lib/Strategy/DialogueStrategy";
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,37 +32,44 @@ export default async function handler(
     });
 
     const castMembers = [person1, person2, person3];
-    const Test = new RandomStrategy();
-    const solutionInstance = new Solution();
 
-    Test.registerIntent(person1);
-    let speaker: ChatInstance | null = null;
+    const Test = new RandomStrategy();
+    const solution = new Solution();
+
+    Test.registerIntent(person1, "speak");
+
+    let speaker: Intent | null = null;
 
     while ((speaker = Test.next())) {
-      const new_message: string = await (speaker.speak() as unknown as string);
+      let new_message = "";
+      if (speaker.intent === "speak") {
+        new_message = await (speaker.castMember.speak() as unknown as string);
+      } else if (speaker.intent === "speakwithedit") {
+        new_message = await (speaker.castMember.speak() as unknown as string);
+        speaker.castMember.editSolution(solution);
+      }
       console.log("__________________________");
       console.log(
-        `NEW MESSAGE BY : ${speaker.getPersonality().name}`,
+        `NEW MESSAGE BY ${
+          speaker.castMember.getPersonality().name
+        } with intent: ${speaker.intent}`,
         new_message
       );
-      console.log("SOLUTION: ", solutionInstance.getSolution());
+      console.log("SOLUTION:", solution.getSolution());
       console.log("__________________________");
 
       for (const castMember of castMembers) {
         await new Promise((resolve) => setTimeout(resolve, 10000));
-        if (castMember !== speaker) {
+        if (castMember !== speaker.castMember) {
           const nextAction = await castMember.listen(
-            speaker.getPersonality().name,
+            speaker.castMember.getPersonality().name,
             new_message,
-            solutionInstance
+            solution
           );
-          console.log(castMember.getPersonality().name, nextAction);
           if (nextAction === "speak") {
-            Test.registerIntent(castMember);
+            Test.registerIntent(castMember, "speak");
           } else if (nextAction === "speakwithedit") {
-            console.log("SPEAKING WITH EDIT");
-            Test.registerIntent(castMember);
-            castMember.editSolution(solutionInstance);
+            Test.registerIntent(castMember, "speakwithedit");
           } else {
             Test.withdrawIntent(castMember);
           }
@@ -70,7 +77,7 @@ export default async function handler(
       }
     }
 
-    console.log(solutionInstance.getSolution());
+    console.log(`SOLUTION: ${solution.getSolution()}`);
     res.status(200).json({ response: "hello" });
   } else {
     res.status(405).json({ error: "Method not allowed" });
