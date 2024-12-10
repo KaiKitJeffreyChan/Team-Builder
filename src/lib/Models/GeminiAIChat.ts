@@ -16,10 +16,25 @@ class GeminiAIChat extends Model {
     this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
 
+  // Right now i dont think the messages are being detected as system or user
   async create({ messages }: { messages: Message[] }): Promise<string> {
     try {
-      const formattedMessages = messages.map((message) => message.content);
-      const response = await this.model.generateContent(formattedMessages);
+      const formattedMessages = messages.map((message) => {
+        switch (message.role) {
+          case "system":
+            return { role: "model", parts: { text: message.content } };
+          case "user":
+            return { role: "user", parts: { text: message.content } };
+          // case "assistant":
+          //   return { role: "assistant", parts: message.content };
+          default:
+            throw new Error(`Unsupported role: ${message.role}`);
+        }
+      });
+      console.log(formattedMessages);
+      const response = await this.model.generateContent({
+        contents: formattedMessages,
+      });
       return response.response.text() || "No response received from Gemini AI";
     } catch (error) {
       console.error("Error in GeminiAIChat.create:", error);

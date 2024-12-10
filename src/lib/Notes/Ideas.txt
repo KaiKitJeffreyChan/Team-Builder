@@ -1,0 +1,1 @@
+- Can create a voice to text mode where you can converse and add solutions 
