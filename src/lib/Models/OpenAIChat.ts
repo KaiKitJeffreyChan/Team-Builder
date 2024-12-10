@@ -8,7 +8,7 @@ class OpenAIChat extends Model {
     super();
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY environment variable is not set.");
+      throw new Error("OPENAI_API_KEY environment variable is not set.");
     }
     this.client = new OpenAI({ apiKey: apiKey });
   }

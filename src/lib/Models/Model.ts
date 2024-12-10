@@ -5,9 +5,10 @@ abstract class Model {
 
   abstract create({
     messages,
+    temperature,
   }: {
     messages: Message[];
-    temperature: number;
+    temperature?: number;
   }): Promise<string>;
 }
 

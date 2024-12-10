@@ -6,7 +6,13 @@ export class Solution {
   }
 
   public updateSolution(newText: string): void {
-    this.text = newText;
+    const cleanedText = newText.trim().toLowerCase();
+    if (
+      cleanedText !== "" &&
+      cleanedText !== "no response received from gemini ai"
+    ) {
+      this.text = cleanedText;
+    }
   }
 
   public getSolution(): string {
