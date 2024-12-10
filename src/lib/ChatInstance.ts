@@ -10,8 +10,8 @@ export class ChatInstance {
   private problem: string;
 
   private messageCount: number;
-  // private responseQueue: { speaker: string; message: string }[] = [];
-  // private isProcessingQueue: boolean = false;
+  private responseQueue: { speaker: string; message: string }[] = [];
+  private isProcessingQueue: boolean = false;
 
   public SPEAK_ACTION = "speak";
   public LISTEN_ACTION = "listen";
@@ -44,12 +44,8 @@ export class ChatInstance {
 
   private LISTEN_USER_PROMPT = `What would you like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
 
-  // private ADD_SOLUTION_PROMPT = `What would you like to add to the solution? Only add to the solution, not something you would say.
-  //   NOTE: The solution is what is expected to be the final answer to the problem.
-  // `;
-
   private ADD_SOLUTION_PROMPT =
-    "What would you like the new solution to be for the problem Only add to the solution, not something you would say.?";
+    "What would you like the new solution to be for the problem. Only add to the solution, not something you would say.?";
 
   constructor({
     personality,
