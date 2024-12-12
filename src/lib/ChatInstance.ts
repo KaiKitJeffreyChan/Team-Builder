@@ -14,7 +14,7 @@ export class ChatInstance {
   public LISTEN_ACTION = "listen";
   public SPEAKWITHEDIT_ACTION = "speakwithedit";
 
-  private LISTEN_SYSTEM_PROMPT = `
+  private LISTEN_DECISION_PROMPT = `
   I must respond with exactly one of the options, without saying anything else ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]. 
   Im going to read what each option means and respond with what I want to do
 
@@ -42,7 +42,7 @@ export class ChatInstance {
 
   private LISTEN_USER_PROMPT = `What I like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
 
-  private ADD_SOLUTION_PROMPT = `What would I like to make the solution? I have to remember what I am going to add now is the solution to the problem. 
+  private ADD_SOLUTION_PROMPT = `What would I like to make the solution? I have to remember what I am going to say now is the solution to the problem. 
     If this does not directly answer the question I should not say it, I will only return the solution itself. 
     
     Examples:
@@ -69,26 +69,13 @@ export class ChatInstance {
           - You are the brain of ${this.personality.name}. You are ${this.personality.description}.
           - Your objective is to solve this: ${this.problem} You will talk with my team and we will add to the solution together. This is your one and only objective in this conversation.
           - Once the solution is complete, try to end the conversation. The conversation cannot end with the solution being empty.
-          - Only include natural language in your responses and do not include any content within the solution in your response.
+          - When being asked to change the solution, only reply with what you want the final solution to be.
           - Do not respond with more than one paragraph at a time.
           - Speak naturally as a human and do not sound robotic.
           - If the conversation is becoming repetitive, change the topic or end the conversation.
           - Do not respond in the form of a script.
           - Do not preface your response with your name.
         `,
-        // content: `
-        //   - Your name is ${this.personality.name}. You are ${this.personality.description}.
-        //   - You are meeting with the group for the first time.
-        //   - Your objective is to solve this: ${this.problem}.
-        //   - Once the solution is complete, try to end the conversation.
-        //   - Only include natural language in your responses and do not include any content within the solution in your response.
-        //   - Do not respond with more than one paragraph at a time.
-        //   - Speak naturally as a human and do not sound robotic.
-        //   - If the conversation is becoming repetitive, change the topic or end the conversation.
-        //   - Do not respond in the form of a script.
-        //   - Do not preface your response with your name.
-        //   - Only talk to the people in your team, and do not break character.
-        // `,
       },
     ];
   }
@@ -113,10 +100,9 @@ export class ChatInstance {
             role: "user",
             content: `I can see that this is the current solution: ${solution.getSolution()}`,
           },
-          { role: "user", name: speaker, content: this.LISTEN_SYSTEM_PROMPT },
+          { role: "user", content: this.LISTEN_DECISION_PROMPT },
           { role: "user", content: this.LISTEN_USER_PROMPT },
         ],
-        temperature: 1,
       });
 
       switch (intent.trim().toLowerCase()) {
@@ -165,10 +151,9 @@ export class ChatInstance {
           ...this.conversationHistory,
           {
             role: "user",
-            content: `I see that the current solution is this: ${solution.getSolution()}, ${
-              this.ADD_SOLUTION_PROMPT
-            }`,
+            content: `I see that the current solution is this: ${solution.getSolution()}`,
           },
+          { role: "user", content: this.ADD_SOLUTION_PROMPT },
         ],
       });
 
