@@ -1,4 +1,4 @@
-import { Message } from "@/types/ModelTypes";
+import { Message } from "@/types/GeneralTypes";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Model from "./Model";
 

@@ -1,4 +1,4 @@
-import { Message } from "../../types/ModelTypes";
+import { Message } from "../../types/GeneralTypes";
 
 abstract class Model {
   constructor() {}

@@ -1,5 +1,5 @@
-import { Personality, Message } from "../types/ModelTypes";
-import { ChatInstanceParams } from "../types/ModelTypes";
+import { Personality, Message } from "../types/GeneralTypes";
+import { ChatInstanceParams } from "../types/GeneralTypes";
 import { Solution } from "../lib/Solution/Solution";
 import Model from "./Models/Model";
 
@@ -43,7 +43,13 @@ export class ChatInstance {
   private LISTEN_USER_PROMPT = `What I like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
 
   private ADD_SOLUTION_PROMPT = `What would I like to make the solution? I have to remember what I am going to add now is the solution to the problem. 
-    If this does not directly answer the question I should not say it, I will only return the solution itself.`;
+    If this does not directly answer the question I should not say it, I will only return the solution itself. 
+    
+    Examples:
+    - If the problem asks for a story, I will now say exactly what the story is.
+    - If the problem is a programming question, I will now say the code that solves the problem.
+    - If the problem is to curate a menu, I will now say the menu.
+    `;
 
   constructor({
     personality,
@@ -62,7 +68,7 @@ export class ChatInstance {
           - You are a brain
           - You are the brain of ${this.personality.name}. You are ${this.personality.description}.
           - Your objective is to solve this: ${this.problem} You will talk with my team and we will add to the solution together. This is your one and only objective in this conversation.
-          - Once the solution is complete, try to end the conversation.
+          - Once the solution is complete, try to end the conversation. The conversation cannot end with the solution being empty.
           - Only include natural language in your responses and do not include any content within the solution in your response.
           - Do not respond with more than one paragraph at a time.
           - Speak naturally as a human and do not sound robotic.

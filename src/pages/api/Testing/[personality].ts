@@ -1,13 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import OpenAIChat from "../../lib/Models/OpenAIChat";
-import GeminiAIChat from "../../lib/Models/GeminiAIChat";
+import OpenAIChat from "@/lib/Models/OpenAIChat";
+import GeminiAIChat from "@/lib/Models/GeminiAIChat";
 import { ChatInstance } from "@/lib/ChatInstance";
-import { RandomStrategy } from "../../lib/Strategy/RandomStrategy";
-import { personalities, problem } from "../../lib/Personalities/personalities";
+import { RandomStrategy } from "@/lib/Strategy/RandomStrategy";
+import { personalities, problem } from "@/lib/Personalities/personalities";
 import { Solution } from "@/lib/Solution/Solution";
 import { Intent } from "@/lib/Strategy/DialogueStrategy";
-import { Personality } from "../../types/ModelTypes";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Personality } from "@/types/GeneralTypes";
 
 const LogDetails = (
   speaker: Intent,
@@ -26,12 +25,12 @@ const LogDetails = (
 };
 
 const generateAgent = (personality: Personality) => {
-  // const chatGPT = new OpenAIChat();
-  const geminiAI = new GeminiAIChat();
+  const chatGPT = new OpenAIChat();
+  //   const geminiAI = new GeminiAIChat();
   return new ChatInstance({
     personality: personality,
     problem: problem,
-    model: geminiAI,
+    model: chatGPT,
   });
 };
 
