@@ -24,7 +24,7 @@ class OpenAIChat extends Model {
       const response = await this.client.chat.completions.create({
         model: "gpt-4o-mini",
         messages: messages,
-        temperature: temperature,
+        temperature: temperature || Math.random() * 0.5 + 0.5,
       });
       const content = response.choices[0].message.content;
 

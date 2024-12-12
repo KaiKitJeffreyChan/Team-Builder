@@ -14,8 +14,9 @@ export class ChatInstance {
   public LISTEN_ACTION = "listen";
   public SPEAKWITHEDIT_ACTION = "speakwithedit";
 
-  private LISTEN_SYSTEM_PROMPT = `The next message is an inner thought. Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"].
-  You must respond with exactly one of the options, without saying anything else.
+  private LISTEN_SYSTEM_PROMPT = `
+  I must respond with exactly one of the options, without saying anything else ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]. 
+  Im going to read what each option means and respond with what I want to do
 
   Say "SPEAK" if:
   - You want to continue the conversation; the conversation will end if all participants say "LISTEN".
@@ -39,10 +40,10 @@ export class ChatInstance {
   - You want to refine, clarify, or optimize the solution to make it more effective.
   `;
 
-  private LISTEN_USER_PROMPT = `What would you like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
+  private LISTEN_USER_PROMPT = `What I like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
 
-  private ADD_SOLUTION_PROMPT =
-    "What would you like the new solution to be for the problem. Only add to the solution, not something you would say.?";
+  private ADD_SOLUTION_PROMPT = `What would I like to make the solution? I have to remember what I am going to add now is the solution to the problem. 
+    If this does not directly answer the question I should not say it, I will only return the solution itself.`;
 
   constructor({
     personality,
@@ -56,11 +57,11 @@ export class ChatInstance {
     this.problem = problem;
     this.conversationHistory = [
       {
-        role: "system",
+        role: "user",
         content: `
-          - Your name is ${this.personality.name}. You are ${this.personality.description}.
-          - You are meeting with the group for the first time.
-          - Your objective is to solve this: ${this.problem}.
+          - You are a brain
+          - You are the brain of ${this.personality.name}. You are ${this.personality.description}.
+          - Your objective is to solve this: ${this.problem} You will talk with my team and we will add to the solution together. This is your one and only objective in this conversation.
           - Once the solution is complete, try to end the conversation.
           - Only include natural language in your responses and do not include any content within the solution in your response.
           - Do not respond with more than one paragraph at a time.
@@ -68,8 +69,20 @@ export class ChatInstance {
           - If the conversation is becoming repetitive, change the topic or end the conversation.
           - Do not respond in the form of a script.
           - Do not preface your response with your name.
-          - Only talk to the people in your team, and do not break character.
         `,
+        // content: `
+        //   - Your name is ${this.personality.name}. You are ${this.personality.description}.
+        //   - You are meeting with the group for the first time.
+        //   - Your objective is to solve this: ${this.problem}.
+        //   - Once the solution is complete, try to end the conversation.
+        //   - Only include natural language in your responses and do not include any content within the solution in your response.
+        //   - Do not respond with more than one paragraph at a time.
+        //   - Speak naturally as a human and do not sound robotic.
+        //   - If the conversation is becoming repetitive, change the topic or end the conversation.
+        //   - Do not respond in the form of a script.
+        //   - Do not preface your response with your name.
+        //   - Only talk to the people in your team, and do not break character.
+        // `,
       },
     ];
   }
@@ -89,12 +102,12 @@ export class ChatInstance {
       const intent = await this.client.create({
         messages: [
           ...this.conversationHistory,
-          { role: "system", content: this.returnCountMessages() },
+          { role: "user", content: this.returnCountMessages() },
           {
-            role: "system",
-            content: `This is the current Solution ${solution.getSolution()}`,
+            role: "user",
+            content: `I can see that this is the current solution: ${solution.getSolution()}`,
           },
-          { role: "system", name: speaker, content: this.LISTEN_SYSTEM_PROMPT },
+          { role: "user", name: speaker, content: this.LISTEN_SYSTEM_PROMPT },
           { role: "user", content: this.LISTEN_USER_PROMPT },
         ],
         temperature: 1,
@@ -145,8 +158,8 @@ export class ChatInstance {
         messages: [
           ...this.conversationHistory,
           {
-            role: "system",
-            content: `This is the current Solution ${solution.getSolution()}, ${
+            role: "user",
+            content: `I see that the current solution is this: ${solution.getSolution()}, ${
               this.ADD_SOLUTION_PROMPT
             }`,
           },

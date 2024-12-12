@@ -6,6 +6,8 @@ import { RandomStrategy } from "../../lib/Strategy/RandomStrategy";
 import { personalities, problem } from "../../lib/Personalities/personalities";
 import { Solution } from "@/lib/Solution/Solution";
 import { Intent } from "@/lib/Strategy/DialogueStrategy";
+import { Personality } from "../../types/ModelTypes";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const LogDetails = (
   speaker: Intent,
@@ -23,34 +25,28 @@ const LogDetails = (
   console.log("__________________________");
 };
 
+const generateAgent = (personality: Personality) => {
+  // const chatGPT = new OpenAIChat();
+  const geminiAI = new GeminiAIChat();
+  return new ChatInstance({
+    personality: personality,
+    problem: problem,
+    model: geminiAI,
+  });
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method === "GET") {
-    // const chatGPT = new OpenAIChat();
-    const geminiAI = new GeminiAIChat();
+    const castMembers = personalities.map((personality) =>
+      generateAgent(personality)
+    );
 
-    const person1 = new ChatInstance({
-      personality: personalities[0],
-      problem: problem,
-      model: geminiAI,
-    });
-    const person2 = new ChatInstance({
-      personality: personalities[1],
-      problem: problem,
-      model: geminiAI,
-    });
-    const person3 = new ChatInstance({
-      personality: personalities[2],
-      problem: problem,
-      model: geminiAI,
-    });
-
-    const castMembers = [person1, person2, person3];
     const Test = new RandomStrategy();
     const solution = new Solution();
-    Test.registerIntent(person1, "speak");
+    Test.registerIntent(castMembers[0], "speak");
 
     let speaker: Intent | null = null;
 
