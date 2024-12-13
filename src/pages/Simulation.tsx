@@ -1,78 +1,55 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { io as ClientIO } from "socket.io-client";
+import { useEffect, useState } from "react";
+import { io as ClientIO, Socket } from "socket.io-client";
+import { CopyBlock } from "react-code-blocks";
 
-type SocketContextType = {
-  socket: any | null;
-  isConnected: boolean;
+type Message = {
+  speaker: string;
+  message: string;
 };
 
-const SocketContext = createContext<SocketContextType>({
-  socket: null,
-  isConnected: false,
-});
-
-export const useSocket = () => {
-  return useContext(SocketContext);
-};
-
-type SimulationProps = {
-  children: React.ReactNode;
-};
-
-const Simulation: React.FC<SimulationProps> = ({ children }) => {
-  const [socket, setSocket] = useState<any | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [messageStream, setMessageStream] = useState<
-    { name: string; message: string }[]
-  >([]);
+const Simulation: React.FC = () => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [messageStream, setMessages] = useState<Message[]>([]);
   const [solution, setSolution] = useState<string | null>(null);
 
   useEffect(() => {
-    const socketInstance = ClientIO("http://localhost:3000");
+    const newSocket = ClientIO();
+    setSocket(newSocket);
 
-    socketInstance.on("connect", () => {
-      setIsConnected(true);
-      setSocket(socketInstance);
+    newSocket.on("message", (response: Message) => {
+      setMessages((prev) => [...prev, response]);
     });
 
-    socketInstance.on("disconnect", () => {
-      setIsConnected(false);
-      setSocket(null);
-    });
-
-    socketInstance.on(
-      "message",
-      (message: {
-        speaker: string;
-        message: string;
-        intent: string;
-        solution: string;
-      }) => {
-        setMessageStream((prev) => [
-          ...prev,
-          { name: message.speaker, message: message.message },
-        ]);
-        setSolution(message.solution);
-      }
-    );
-
-    socketInstance.on("solution", (solution: string) => {
-      setSolution(solution);
+    newSocket.on("solution", (finalSolution: string) => {
+      setSolution(finalSolution);
     });
 
     return () => {
-      socketInstance.disconnect();
+      newSocket.disconnect();
     };
   }, []);
 
   return (
-    <div>
-      {messageStream.map((msg, index) => (
-        <div key={index}>
-          <strong>{msg.name}:</strong> {msg.message}
+    <div className="m-5">
+      <h1 className="my-5">Simulation Messages</h1>
+      <div className="grid grid-cols-[50%_50%]">
+        <div className="col-span-1 ">
+          <h2>Messages:</h2>
+          {messageStream.map((msg, index) => (
+            <div className="my-5" key={index}>
+              <strong>{msg.speaker}:</strong> {msg.message}
+            </div>
+          ))}
         </div>
-      ))}
-      {solution && <div>Solution: {solution}</div>}
+        <div className="col-span-1">
+          <h2>Solution:</h2>
+          <p>
+            {solution && (
+              <CopyBlock text={solution || ""} language={"python"} />
+            )}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
