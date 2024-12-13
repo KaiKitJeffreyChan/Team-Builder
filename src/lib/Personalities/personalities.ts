@@ -1,4 +1,4 @@
-import { Personality } from "../../types/ModelTypes";
+import { Personality } from "../../types/GeneralTypes";
 
 const personalities: Personality[] = [
   {
