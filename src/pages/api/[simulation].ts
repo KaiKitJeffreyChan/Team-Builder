@@ -1,12 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { Server as IOServer } from "socket.io";
+import { NextApiResponseServerIo } from "../../types/GeneralTypes";
 import { ChatInstance } from "../../lib/ChatInstance";
 import { Personality } from "../../types/GeneralTypes";
 import OpenAIChat from "../../lib/Models/OpenAIChat";
 import GeminiAIChat from "../../lib/Models/GeminiAIChat";
-import { Server } from "socket.io";
 import { personalities, problem } from "../../lib/Personalities/personalities";
-
-import { NextApiResponseServerIo } from "../../types/GeneralTypes";
 import { Intent } from "@/lib/Strategy/DialogueStrategy";
 import { Solution } from "@/lib/Solution/Solution";
 import { RandomStrategy } from "../../lib/Strategy/RandomStrategy";
@@ -16,12 +15,13 @@ const generateAgent = (
   problem: string,
   modelType: "OpenAIChat" | "GeminiAIChat"
 ) => {
-  const model =
-    modelType === "OpenAIChat" ? new OpenAIChat() : new GeminiAIChat();
+  // const model =
+  //   modelType === "OpenAIChat" ? new OpenAIChat() : new GeminiAIChat();
+  const model = new GeminiAIChat();
   return new ChatInstance({
-    personality: personality,
-    problem: problem,
-    model: model,
+    personality,
+    problem,
+    model,
   });
 };
 
@@ -30,77 +30,100 @@ const getIncomingMessage = (
   new_message: string,
   solution: Solution
 ) => {
-  return {
+  const returnMessage = {
     speaker: speaker.castMember.getPersonality().name,
     message: new_message,
     intent: speaker.intent,
     solution: solution.getSolution(),
   };
+  // console.log(returnMessage);
+  return returnMessage;
 };
 
-const handler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
+const handler = async (req: NextApiRequest, res: NextApiResponseServerIo) => {
   if (req.method === "POST") {
-    console.log(personalities);
-    const castMembers: ChatInstance[] = personalities.map(
-      (personality: Personality) =>
-        generateAgent(personality, req.body.problem, req.body.model)
+    if (!(res.socket as any).server.io) {
+      console.log("Initializing Socket.IO...");
+      const io = new IOServer((res.socket as any).server);
+
+      (res.socket as any).server.io = io;
+
+      io.on("connection", (socket) => {
+        console.log("Client connected");
+
+        socket.on("disconnect", () => {
+          console.log("Client disconnected");
+        });
+      });
+    }
+    const { model, communicationMethod } = req.body;
+
+    const castMembers: ChatInstance[] = personalities.map((personality) =>
+      generateAgent(personality, problem, model)
     );
 
-    // Open socket for chat
-    const io = new Server((res.socket as any).server);
+    const io = (res.socket as any).server.io;
 
-    io.on("connection", async (socket) => {
-      console.log("Client connected");
-      console.log("here");
+    const communicationStrategy =
+      communicationMethod === "Random"
+        ? new RandomStrategy()
+        : new RandomStrategy();
 
-      const communicationMethod =
-        // Will add more strategies in the future
-        req.body.communicationMethod === "Random"
-          ? new RandomStrategy()
-          : new RandomStrategy();
+    const solution = new Solution();
 
-      const solution = new Solution();
-      communicationMethod.registerIntent(castMembers[0], "speak");
+    communicationStrategy.registerIntent(castMembers[0], "speak");
+
+    interface IncomingMessage {
+      speaker: string;
+      message: string;
+      intent: string;
+      solution: string;
+    }
+
+    io.on("connection", async (socket: any) => {
       let speaker: Intent | null = null;
 
-      while ((speaker = communicationMethod.next())) {
-        let new_message = "";
+      while ((speaker = communicationStrategy.next())) {
+        let newMessage = "";
+
         if (speaker.intent === "speak") {
-          new_message = await speaker.castMember.speak();
+          newMessage = await speaker.castMember.speak();
         } else if (speaker.intent === "speakwithedit") {
-          new_message = await (speaker.castMember.speak() as unknown as string);
+          newMessage = await speaker.castMember.speak();
           speaker.castMember.editSolution(solution);
         }
 
-        const message = getIncomingMessage(speaker, new_message, solution);
+        const message: IncomingMessage = getIncomingMessage(
+          speaker,
+          newMessage,
+          solution
+        );
+
         socket.emit("message", message);
+        socket.emit("solution", solution.getSolution());
+
         for (const castMember of castMembers) {
           await new Promise((resolve) => setTimeout(resolve, 10000));
           if (castMember !== speaker.castMember) {
-            const nextAction = await castMember.listen(
+            const nextAction: string = await castMember.listen(
               speaker.castMember.getPersonality().name,
-              new_message,
+              newMessage,
               solution
             );
+            console.log(castMember.getPersonality().name, nextAction);
+
             if (nextAction === "speak") {
-              communicationMethod.registerIntent(castMember, "speak");
+              communicationStrategy.registerIntent(castMember, "speak");
             } else if (nextAction === "speakwithedit") {
-              communicationMethod.registerIntent(castMember, "speakwithedit");
+              communicationStrategy.registerIntent(castMember, "speakwithedit");
             } else {
-              communicationMethod.withdrawIntent(castMember);
+              communicationStrategy.withdrawIntent(castMember);
             }
           }
         }
       }
-      socket.emit("solution", solution.getSolution());
-      socket.on("disconnect", () => {
-        console.log("Client disconnected");
-      });
     });
-
-    (res.socket as any).server.io = io;
-
-    res.status(200).json({ message: "POST request received" });
+    res.status(200).end();
   } else {
     res.setHeader("Allow", ["POST"]);
     res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -6,7 +6,6 @@ export class Solution {
   }
 
   public updateSolution(newText: string): void {
-    console.log("Updating solution with:", newText);
     const cleanedText = newText.trim().toLowerCase();
     if (
       cleanedText !== "" &&

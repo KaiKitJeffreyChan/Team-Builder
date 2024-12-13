@@ -14,36 +14,36 @@ export class ChatInstance {
   public LISTEN_ACTION = "listen";
   public SPEAKWITHEDIT_ACTION = "speakwithedit";
 
-  private LISTEN_SYSTEM_PROMPT = `
+  private LISTEN_DECISION_PROMPT = `
   I must respond with exactly one of the options, without saying anything else ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]. 
   Im going to read what each option means and respond with what I want to do
 
   Say "SPEAK" if:
-  - You want to continue the conversation; the conversation will end if all participants say "LISTEN".
-  - You have something new to say or a new idea to introduce.
-  - You want to speak without changing the solution. 
-  - You want to ask a question or make a statement.
-  - You want to clarify or elaborate on a point without changing the solution yet.
-  - You want to respond to a question or comment.
+  - I want to continue the conversation; the conversation will end if all participants say "LISTEN".
+  - I have something new to say or a new idea to introduce.
+  - I want to speak without changing the solution. 
+  - I want to ask a question or make a statement.
+  - I want to clarify or elaborate on a point without changing the solution yet.
+  - I want to respond to a question or comment.
 
   Say "LISTEN" if:
-  - You are bored or don't find the topic interesting.
+  - I are bored or don't find the topic interesting.
   - The conversation is wrapping up.
-  - You have nothing new to say.
-  - The conversation has been going on for a while;  you get tired the longer the conversation goes on
+  - I have nothing new to say.
+  - The conversation has been going on for a while;  I get tired the longer the conversation goes on
   
   Say "SPEAKWITHEDIT" if:
-  - You are considering contributing a solution or improving upon an existing one.
+  - I am considering contributing a solution or improving upon an existing one.
   - The current solution is incomplete or could be enhanced with a better idea or perspective.
-  - Someone else in the group has shared an idea worth incorporating, and you want to highlight or integrate it.
+  - Someone else in the group has shared an idea worth incorporating, and I want to highlight or integrate it.
   - There is consensus or discussion that suggests the solution needs to evolve or change.
-  - You want to refine, clarify, or optimize the solution to make it more effective.
+  - I want to refine, clarify, or optimize the solution to make it more effective.
   `;
 
-  private LISTEN_USER_PROMPT = `What I like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
+  private LISTEN_USER_PROMPT = `What would I like to do next? Respond with one of the options ["SPEAK", "LISTEN", "SPEAKWITHEDIT"]`;
 
   private ADD_SOLUTION_PROMPT = `What would I like to make the solution? I have to remember what I am going to add now is the solution to the problem. 
-    If this does not directly answer the question I should not say it, I will only return the solution itself. 
+    If this does not directly answer the question I should not say it, I will only return the solution itself. Im not going to explain the solution, ill just say it.
     
     Examples:
     - If the problem asks for a story, I will now say exactly what the story is.
@@ -69,9 +69,8 @@ export class ChatInstance {
           - You are the brain of ${this.personality.name}. You are ${this.personality.description}.
           - Your objective is to solve this: ${this.problem} You will talk with my team and we will add to the solution together. This is your one and only objective in this conversation.
           - Once the solution is complete, try to end the conversation. The conversation cannot end with the solution being empty.
-          - Only include natural language in your responses and do not include any content within the solution in your response.
           - Do not respond with more than one paragraph at a time.
-          - Speak naturally as a human and do not sound robotic.
+          - Speak naturally as a human and do not sound robotic.s
           - If the conversation is becoming repetitive, change the topic or end the conversation.
           - Do not respond in the form of a script.
           - Do not preface your response with your name.
@@ -113,7 +112,7 @@ export class ChatInstance {
             role: "user",
             content: `I can see that this is the current solution: ${solution.getSolution()}`,
           },
-          { role: "user", name: speaker, content: this.LISTEN_SYSTEM_PROMPT },
+          { role: "user", name: speaker, content: this.LISTEN_DECISION_PROMPT },
           { role: "user", content: this.LISTEN_USER_PROMPT },
         ],
         temperature: 1,
@@ -144,11 +143,6 @@ export class ChatInstance {
 
       if (!response) throw new Error("Null response from GPT");
 
-      this.addToConversationHistory({
-        role: "user",
-        name: this.personality.name,
-        content: response,
-      });
       this.messageCount++;
 
       return response;
@@ -165,10 +159,9 @@ export class ChatInstance {
           ...this.conversationHistory,
           {
             role: "user",
-            content: `I see that the current solution is this: ${solution.getSolution()}, ${
-              this.ADD_SOLUTION_PROMPT
-            }`,
+            content: `I see that the current solution is this: ${solution.getSolution()}`,
           },
+          { role: "user", content: this.ADD_SOLUTION_PROMPT },
         ],
       });
 

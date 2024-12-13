@@ -25,12 +25,12 @@ const LogDetails = (
 };
 
 const generateAgent = (personality: Personality) => {
-  const chatGPT = new OpenAIChat();
-  //   const geminiAI = new GeminiAIChat();
+  //   const chatGPT = new OpenAIChat();
+  const geminiAI = new GeminiAIChat();
   return new ChatInstance({
     personality: personality,
     problem: problem,
-    model: chatGPT,
+    model: geminiAI,
   });
 };
 
