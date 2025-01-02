@@ -8,14 +8,14 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      primary: "#181C14",
-      secondary: "#3C3D37",
-      primHighlight: "697565",
-      secHighlight: "#ECDFCC",
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      fontFamily: {
+        shareTechMono: ['"Share Tech Mono"', "monospace"],
+      },
+      colors: {
+        primary: "#181C14",
+        secondary: "#3C3D37",
+        primHighlight: "#697565",
+        secHighlight: "#ECDFCC",
       },
     },
   },
